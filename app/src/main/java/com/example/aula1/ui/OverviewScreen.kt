@@ -4,11 +4,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,6 +19,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowCircleUp
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -29,8 +33,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -88,13 +95,16 @@ fun OverviewScreen(viewModel: OverviewViewModel = viewModel()) {
         }
     ) {
 
+
         Column(modifier = Modifier.padding(it)) {
+            AdviceToogle(advice = uiState.advice)
             Text(
                 text = "Transactions",
                 modifier = Modifier.padding(
                     start = 16.dp,
                     end = 16.dp
-                )
+                ),
+                style = MaterialTheme.typography.headlineSmall
             )
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -152,4 +162,34 @@ fun OverviewScreen(viewModel: OverviewViewModel = viewModel()) {
 
         }
     }
+}
+
+@Composable
+fun AdviceToogle(advice: String) {
+    var isVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+    Column() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { isVisible = !isVisible}
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Advice",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "")
+        }
+        AnimatedVisibility(visible = isVisible) {
+            Text(
+                modifier = Modifier
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                text = advice
+            )
+        }
+    }
+
 }

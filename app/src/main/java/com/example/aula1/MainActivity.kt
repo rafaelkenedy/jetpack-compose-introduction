@@ -9,6 +9,8 @@ import com.example.aula1.ui.theme.Aula1Theme
 
 
 class MainActivity : ComponentActivity() {
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

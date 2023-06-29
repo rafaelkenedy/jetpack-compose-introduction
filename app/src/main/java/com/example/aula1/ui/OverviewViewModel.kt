@@ -1,22 +1,49 @@
 package com.example.aula1.ui
 
 
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aula1.model.Transaction
-import kotlinx.coroutines.delay
+import com.example.aula1.network.AiService
+import com.example.aula1.network.OpenIAPrompt
+import com.example.aula1.network.RetrofitModule
+import com.example.aula1.ui.DummyRepository.getRandomFinanceTip
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
 class OverviewViewModel(
-    private val repository: DummyRepository = DummyRepository
+    private val repository: DummyRepository = DummyRepository,
+    private val aiService: AiService = RetrofitModule.provideAiService(),
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val filter = MutableStateFlow<String?>(null)
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
+
+    init {
+        val prompt = "Give me a small personal finance advice"
+        viewModelScope.launch(ioDispatcher) {
+            val response = aiService.completions(OpenIAPrompt(prompt))
+            if (response.isSuccessful) {
+                response.body()?.choices?.first()?.text?.let { advice ->
+                    _uiState.value = uiState.value.copy(
+                        advice = advice.trim()
+                    )
+                }
+            } else {
+                _uiState.value = uiState.value.copy(
+                    advice = getRandomFinanceTip()
+                )
+            }
+        }
+    }
 
 //    init {
 //        val name = "Rafael Kenedy"
@@ -66,13 +93,14 @@ class OverviewViewModel(
             transactionListSaved
         }
 
-        _uiState.value = UiState(
+        _uiState.value = uiState.value.copy(
             transactions = transactions,
             total = transactionListSaved.sumOf { it.value }
         )
     }
 
     data class UiState(
+        val advice: String = "",
         val userName: String = "",
         val transactions: List<Transaction> = emptyList(),
         val total: BigDecimal = transactions.sumOf { it.value }
